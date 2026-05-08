@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz de Serviços — Mêcano</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand-red: #F31C46;
+      --brand-red-dark: #6B0418;
+      --brand-red-soft: rgba(243, 28, 70, 0.08);
+      --brand-black: #0a0a0a;
+      --brand-gray-bg: #f5f5f7;
+      --brand-gray-line: #e5e5e7;
+      --brand-text: #18181b;
+      --brand-text-soft: #6b7280;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--brand-gray-bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: var(--brand-text);
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(10,10,10,0.08), 0 2px 8px rgba(243,28,70,0.05);
+      max-width: 680px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(165deg, #F31C46 0%, #6B0418 100%);
+      padding: 2rem 2.25rem;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 999px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+      position: relative;
+    }
+    .header .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    }
+    .header h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.4rem;
+      position: relative;
+    }
+    .header p {
+      opacity: 0.85;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      font-weight: 400;
+      position: relative;
+    }
+
+    /* ── Progress ── */
+    .progress-bar {
+      height: 5px;
+      background: rgba(255,255,255,0.22);
+      border-radius: 6px;
+      margin-top: 1.25rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #fff;
+      width: 33%;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.6);
+    }
+
+    /* ── Body ── */
+    .body { padding: 2.25rem 2.25rem; background: #fff; }
+
+    .field { margin-bottom: 1.6rem; }
+
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--brand-text);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 0.55rem;
+    }
+
+    .field input[type="text"] {
+      width: 100%;
+      padding: 0.85rem 1.05rem;
+      border: 1.5px solid var(--brand-gray-line);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: var(--brand-text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+    .field input[type="text"]:focus {
+      border-color: var(--brand-red);
+      box-shadow: 0 0 0 3px rgba(243,28,70,0.12);
+    }
+    .field input[type="text"]::placeholder { color: #a1a1aa; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--brand-gray-line);
+      margin: 0.4rem 0 1.6rem;
+    }
+
+    /* ── Step ── */
+    .step { display: none; animation: fadeIn 0.3s ease; }
+    .step.active { display: block; }
+
+    .step-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--brand-text);
+      margin-bottom: 0.35rem;
+    }
+    .step-subtitle {
+      font-size: 0.88rem;
+      color: var(--brand-text-soft);
+      margin-bottom: 1.35rem;
+      line-height: 1.5;
+    }
+
+    /* ── Option cards ── */
+    .opt-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .opt-card {
+      border: 1.5px solid var(--brand-gray-line);
+      border-radius: 14px;
+      padding: 1.05rem 1.15rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      user-select: none;
+      background: #fff;
+    }
+    .opt-card:hover {
+      border-color: var(--brand-red);
+      background: var(--brand-red-soft);
+      transform: translateY(-1px);
+    }
+    .opt-card.selected {
+      border-color: var(--brand-red);
+      background: var(--brand-red-soft);
+      box-shadow: 0 0 0 3px rgba(243,28,70,0.10);
+    }
+
+    .opt-check {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #d1d5db;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      font-size: 0.8rem;
+      color: transparent;
+    }
+    .opt-card.selected .opt-check {
+      background: var(--brand-red);
+      border-color: var(--brand-red);
+      color: white;
+      box-shadow: 0 2px 6px rgba(243,28,70,0.35);
+    }
+
+    .opt-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .opt-info { flex: 1; }
+    .opt-name { font-weight: 600; color: var(--brand-text); font-size: 0.98rem; letter-spacing: -0.005em; }
+    .opt-desc { font-size: 0.8rem; color: var(--brand-text-soft); margin-top: 0.2rem; line-height: 1.45; }
+
+    /* ── Task groups ── */
+    .group {
+      border: 1.5px solid var(--brand-gray-line);
+      border-radius: 14px;
+      margin-bottom: 0.85rem;
+      overflow: hidden;
+      background: #fff;
+      transition: border-color 0.2s;
+    }
+    .group:hover { border-color: rgba(243,28,70,0.25); }
+    .group-header {
+      background: linear-gradient(135deg, #fafafa 0%, #f5f5f7 100%);
+      padding: 0.9rem 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      border-bottom: 1px solid var(--brand-gray-line);
+    }
+    .group-num {
+      background: linear-gradient(135deg, var(--brand-red) 0%, var(--brand-red-dark) 100%);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(243,28,70,0.3);
+    }
+    .group-title {
+      font-weight: 600;
+      color: var(--brand-text);
+      font-size: 0.95rem;
+      letter-spacing: -0.005em;
+      flex: 1;
+    }
+    .group-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--brand-text-soft);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+      font-family: inherit;
+    }
+    .group-toggle:hover { background: var(--brand-red-soft); color: var(--brand-red); }
+
+    .group-body { padding: 0.55rem 0.4rem; }
+
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .task:hover { background: var(--brand-red-soft); }
+    .task.selected { background: var(--brand-red-soft); }
+
+    .task-check {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d1d5db;
+      border-radius: 5px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      font-size: 0.7rem;
+      color: transparent;
+    }
+    .task.selected .task-check {
+      background: var(--brand-red);
+      border-color: var(--brand-red);
+      color: white;
+    }
+
+    .task-num {
+      font-size: 0.78rem;
+      color: var(--brand-red);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+      min-width: 28px;
+    }
+    .task-text {
+      font-size: 0.87rem;
+      color: var(--brand-text);
+      line-height: 1.45;
+      flex: 1;
+    }
+
+    .group-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .mini-btn {
+      background: #fff;
+      border: 1.5px solid var(--brand-gray-line);
+      color: var(--brand-text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .mini-btn:hover {
+      background: var(--brand-red-soft);
+      border-color: var(--brand-red);
+      color: var(--brand-red);
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 0.65rem;
+      margin-top: 1.5rem;
+    }
+    .btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: none;
+      border-radius: 12px;
+      padding: 0.95rem 1.3rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      letter-spacing: -0.005em;
+    }
+    .btn-primary {
+      background: linear-gradient(165deg, var(--brand-red) 0%, var(--brand-red-dark) 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(243,28,70,0.35);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(243,28,70,0.45);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+    .btn-secondary {
+      background: #fff;
+      border: 1.5px solid var(--brand-gray-line);
+      color: var(--brand-text);
+      flex: 0 0 auto;
+      padding: 0.95rem 1.3rem;
+    }
+    .btn-secondary:hover {
+      border-color: var(--brand-red);
+      color: var(--brand-red);
+      background: var(--brand-red-soft);
+    }
+
+    /* ── Status ── */
+    .status {
+      margin-top: 1rem;
+      padding: 0.95rem 1.05rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .status.loading  { background: var(--brand-red-soft); color: var(--brand-red-dark); border: 1px solid rgba(243,28,70,0.25); }
+    .status.success  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .status.error    { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .summary-line {
+      font-size: 0.83rem;
+      color: var(--brand-text-soft);
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, #fafafa 0%, #f5f5f7 100%);
+      border-radius: 10px;
+      border-left: 3px solid var(--brand-red);
+    }
+    .summary-line strong { color: var(--brand-text); font-weight: 600; }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #a1a1aa;
+      margin-top: 1.25rem;
+    }
+    .footer-note strong { color: var(--brand-red); font-weight: 600; }
+
+    .selection-counter {
+      font-size: 0.8rem;
+      color: var(--brand-red);
+      font-weight: 600;
+      margin-bottom: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--brand-red-soft);
+      border-radius: 999px;
+    }
+    .selection-counter::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--brand-red);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="header">
+    <div class="badge">Mêcano</div>
+    <h1>Quiz de Serviços</h1>
+    <p>Selecione o tipo de serviço para gerar a estrutura de tarefas no ClickUp.</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="body">
+
+    <!-- ─────────── STEP 1 ─────────── -->
+    <div class="step active" id="step-1">
+      <div class="field">
+        <label>Nome do Cliente</label>
+        <input type="text" id="cliente" placeholder="Ex: Empresa ABC Ltda" autocomplete="off" />
+      </div>
+
+      <hr class="divider" />
+
+      <div class="step-title">Tipo de Serviço</div>
+      <div class="step-subtitle">Escolha o serviço a ser contratado.</div>
+
+      <div class="opt-list">
+        <div class="opt-card" data-value="Holding" onclick="selectOption(this, 'servico')">
+          <div class="opt-check">●</div>
+          <div class="opt-icon">🏛️</div>
+          <div class="opt-info">
+            <div class="opt-name">Holding</div>
+            <div class="opt-desc">Estruturação de holding patrimonial / familiar</div>
+          </div>
+        </div>
+
+        <div class="opt-card" data-value="Contrato de Prestação de serviços contábeis" onclick="selectOption(this, 'servico')">
+          <div class="opt-check">●</div>
+          <div class="opt-icon">📑</div>
+          <div class="opt-info">
+            <div class="opt-name">Contrato de Prestação de Serviços Contábeis</div>
+            <div class="opt-desc">Contratação dos serviços contábeis recorrentes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnNext1" onclick="goToStep2()">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- ─────────── STEP 2 ─────────── -->
+    <div class="step" id="step-2">
+      <div class="summary-line">Cliente: <strong id="resumo-cliente"></strong> · Serviço: <strong>Holding</strong></div>
+
+      <div class="step-title">Complexidade da Holding</div>
+      <div class="step-subtitle">Escolha o nível de complexidade do trabalho.</div>
+
+      <div class="opt-list">
+        <div class="opt-card" data-value="Complexa" onclick="selectOption(this, 'complexidade')">
+          <div class="opt-check">●</div>
+          <div class="opt-icon">🧩</div>
+          <div class="opt-info">
+            <div class="opt-name">Complexa</div>
+            <div class="opt-desc">Distratos, integralizações, doações e trâmites registrais</div>
+          </div>
+        </div>
+
+        <div class="opt-card" data-value="Básica" onclick="selectOption(this, 'complexidade')">
+          <div class="opt-check">●</div>
+          <div class="opt-icon">📘</div>
+          <div class="opt-info">
+            <div class="opt-name">Básica</div>
+            <div class="opt-desc">Constituição simples com registro em Junta e Prefeitura</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goToStep(1)">← Voltar</button>
+        <button class="btn btn-primary" id="btnNext2" onclick="goToStep3()">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- ─────────── STEP 3 ─────────── -->
+    <div class="step" id="step-3">
+      <div class="summary-line" id="resumo-final"></div>
+
+      <div class="step-title">Tarefas a serem criadas no ClickUp</div>
+      <div class="step-subtitle">Marque as tarefas que devem ser criadas.</div>
+
+      <div class="selection-counter" id="counter">0 tarefa(s) selecionada(s)</div>
+
+      <div class="group-actions">
+        <button class="mini-btn" onclick="toggleAllTasks(true)">✓ Marcar todas</button>
+        <button class="mini-btn" onclick="toggleAllTasks(false)">✕ Limpar</button>
+      </div>
+
+      <div id="taskGroups"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="voltarStep3()">← Voltar</button>
+        <button class="btn btn-primary" id="btnSubmit" onclick="enviarQuiz()">Criar no ClickUp →</button>
+      </div>
+
+      <div class="status" id="status"></div>
+      <p class="footer-note">Os cards serão criados em instantes no ClickUp.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ─────────────────────────────────────────────
+  // CONFIGURAÇÃO
+  // ─────────────────────────────────────────────
+  const WEBHOOK_URL = 'https://hook.us2.make.com/4e8tgxur4y905dgljuw56zw8krdc4qhc';
+
+  const TAREFAS = {
+    'Holding/Complexa': [
+      {
+        titulo: 'Financeiro',
+        itens: [
+          { num: '1.1', texto: 'Proposta enviada e formalizada no ClickUp' },
+          { num: '1.2', texto: 'Contrato de prestação de serviços (assinado pelo cliente em 20/04/2026)' },
+          { num: '1.3', texto: 'Planejamento dos trabalhos no ClickUp' },
+          { num: '1.4', texto: 'Emissão da nota fiscal e boletos relativos à primeira etapa no valor de R$ 35.000' },
+          { num: '1.5', texto: 'Emissão da cobrança de taxas e despachantes' },
+          { num: '1.6', texto: 'Quitação completa dos honorários e taxas de despachante' },
+          { num: '1.7', texto: 'Emissão da nota fiscal e boletos relativos à segunda etapa no valor de R$ 25.000 (aguardar a doação)' }
+        ]
+      },
+      {
+        titulo: 'Contrato de constituição/encerramento',
+        itens: [
+          { num: '2.1', texto: 'Confecção do distrato social da Centro Equestre Du Soleil Ltda (contrato original está muito mal escrito no que tange a doação de cotas e reserva de usufruto) — Distrato feito e enviado para revisão pro Nando em 24/04/2026' },
+          { num: '2.2', texto: 'Distrato assinado pelo cliente e enviado ao Marcos para trâmites registrais' },
+          { num: '2.3', texto: 'Distrato salvo na rede e enviado para o cliente' },
+          { num: '2.4', texto: 'Constituição da Holding Master com Capital Simbólico de R$ 457,00 (pois futuramente integralizaremos as cotas da Marchioni por R$ 254.543 e F.A. por R$ 4.500.000) totalizando FUTURAMENTE capital de R$ 4.755.000 — Constituição realizada e enviada pro Nando para revisão em 24/04/2026' },
+          { num: '2.5', texto: 'Contrato de constituição assinado pelo cliente e enviado ao Marcos para trâmites registrais' },
+          { num: '2.6', texto: 'Contrato salvo na rede e enviado para o cliente' }
+        ]
+      },
+      {
+        titulo: 'Contratos de Integralização',
+        itens: [
+          { num: '3.1', texto: 'Declaração de IR, Matrículas, e IPTU salvos na rede' },
+          { num: '3.2', texto: 'Documento pessoal dos sócios e filhos para doação' },
+          { num: '3.3', texto: 'Confecção da planilha e do PPT de planejamento' },
+          { num: '3.4', texto: 'Confecção do contrato e envio para o cliente (Data: )' },
+          { num: '3.5', texto: 'Contrato assinado pelo cliente e enviado ao Marcos para trâmites registrais' },
+          { num: '3.6', texto: 'Contrato assinado, salvo na rede e enviado para o cliente' }
+        ]
+      },
+      {
+        titulo: 'Contrato de doação',
+        itens: [
+          { num: '4.1', texto: 'Confecção do contrato e envio para o cliente (Data: )' },
+          { num: '4.2', texto: 'Contrato assinado pelo cliente e enviado ao Marcos para trâmites registrais' },
+          { num: '4.3', texto: 'Declaração, envio e guarda das guias recolhidas de ITCMD na rede' },
+          { num: '4.4', texto: 'Balanço Patrimonial da empresa doada salva na pasta' },
+          { num: '4.5', texto: 'Contrato assinado, salvo na rede e enviado para o cliente' }
+        ]
+      },
+      {
+        titulo: 'Trâmites registrais — CRI e ITBI',
+        itens: [
+          { num: '5.1', texto: 'Requerimento de imunidade de Dumont (Deferido / Indeferido / Parcialmente Deferido)' },
+          { num: '5.2', texto: 'Requerimento de registro junto ao CRI de Sertãozinho' },
+          { num: '5.3', texto: 'Matrículas atualizadas de Dumont salva na rede' },
+          { num: '5.4', texto: 'Judicialização do ITBI (Sim / Não)' }
+        ]
+      }
+    ],
+    'Holding/Básica': [
+      {
+        titulo: 'Financeiro',
+        itens: [
+          { num: '1.1', texto: 'NF e boletos emitidos em' }
+        ]
+      },
+      {
+        titulo: 'Contrato Social',
+        itens: [
+          { num: '2.1', texto: 'Elaboração do Contrato Social' },
+          { num: '2.2', texto: 'Envio do contrato ao cliente para aprovação em 12/01/2026' },
+          { num: '2.3', texto: 'Contrato assinado em 13/01/2026' },
+          { num: '2.4', texto: 'Elaboração da Viabilidade em' },
+          { num: '2.5', texto: 'Viabilidade liberada em' },
+          { num: '2.6', texto: 'Elaboração do DBE em' },
+          { num: '2.7', texto: 'DBE liberado em' },
+          { num: '2.8', texto: 'Envio do contrato para JUCESP em' },
+          { num: '2.9', texto: 'Contrato registrado na JUCESP em 23/01/2026' },
+          { num: '2.10', texto: 'Pedido de Registro na Prefeitura de São Carlos em 11/02/2026' },
+          { num: '2.11', texto: 'Registro na Prefeitura de São Carlos em' }
+        ]
+      }
+    ]
+  };
+
+  // ─────────────────────────────────────────────
+  // ESTADO
+  // ─────────────────────────────────────────────
+  const state = {
+    cliente: '',
+    servico: null,
+    complexidade: null,
+    tarefasSelecionadas: new Set()
+  };
+
+  // ─────────────────────────────────────────────
+  // NAVEGAÇÃO
+  // ─────────────────────────────────────────────
+  function setProgress(pct) {
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  function goToStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+    setProgress(n === 1 ? 33 : n === 2 ? 66 : 100);
+  }
+
+  function selectOption(card, group) {
+    card.parentElement.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    state[group] = card.dataset.value;
+  }
+
+  function goToStep2() {
+    const cliente = document.getElementById('cliente').value.trim();
+    if (!cliente) { alert('Informe o nome do cliente.'); return; }
+    if (!state.servico) { alert('Selecione o tipo de serviço.'); return; }
+
+    state.cliente = cliente;
+
+    if (state.servico === 'Holding') {
+      document.getElementById('resumo-cliente').textContent = cliente;
+      goToStep(2);
+    } else {
+      // Contrato contábil → ainda não há fluxo definido, mostra mensagem
+      alert('O fluxo para "Contrato de Prestação de Serviços Contábeis" ainda não foi configurado neste quiz.');
+    }
+  }
+
+  function goToStep3() {
+    if (!state.complexidade) { alert('Selecione a complexidade.'); return; }
+    renderTarefas();
+    document.getElementById('resumo-final').innerHTML =
+      `Cliente: <strong>${state.cliente}</strong> · Serviço: <strong>Holding ${state.complexidade}</strong>`;
+    goToStep(3);
+  }
+
+  function voltarStep3() {
+    if (state.servico === 'Holding') goToStep(2);
+    else goToStep(1);
+  }
+
+  // ─────────────────────────────────────────────
+  // RENDER DAS TAREFAS
+  // ─────────────────────────────────────────────
+  function renderTarefas() {
+    const chave = `Holding/${state.complexidade}`;
+    const grupos = TAREFAS[chave] || [];
+    const container = document.getElementById('taskGroups');
+    container.innerHTML = '';
+    state.tarefasSelecionadas.clear();
+
+    grupos.forEach((g, idx) => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'group';
+      groupEl.innerHTML = `
+        <div class="group-header">
+          <div class="group-num">${idx + 1}</div>
+          <div class="group-title">${g.titulo}</div>
+          <button class="group-toggle" onclick="toggleGroup(${idx})">marcar grupo</button>
+        </div>
+        <div class="group-body" id="group-body-${idx}"></div>
+      `;
+      container.appendChild(groupEl);
+
+      const body = groupEl.querySelector('.group-body');
+      g.itens.forEach(item => {
+        const id = `${g.titulo}|${item.num}`;
+        const taskEl = document.createElement('div');
+        taskEl.className = 'task selected';
+        taskEl.dataset.id = id;
+        taskEl.dataset.grupo = g.titulo;
+        taskEl.dataset.num = item.num;
+        taskEl.dataset.texto = item.texto;
+        taskEl.innerHTML = `
+          <div class="task-check">✓</div>
+          <div class="task-num">${item.num}</div>
+          <div class="task-text">${item.texto}</div>
+        `;
+        taskEl.addEventListener('click', () => toggleTask(taskEl));
+        body.appendChild(taskEl);
+        state.tarefasSelecionadas.add(id);
+      });
+    });
+
+    updateCounter();
+  }
+
+  function toggleTask(el) {
+    const id = el.dataset.id;
+    if (state.tarefasSelecionadas.has(id)) {
+      state.tarefasSelecionadas.delete(id);
+      el.classList.remove('selected');
+    } else {
+      state.tarefasSelecionadas.add(id);
+      el.classList.add('selected');
+    }
+    updateCounter();
+  }
+
+  function toggleGroup(idx) {
+    const body = document.getElementById('group-body-' + idx);
+    const tasks = body.querySelectorAll('.task');
+    const allSelected = [...tasks].every(t => t.classList.contains('selected'));
+    tasks.forEach(t => {
+      const id = t.dataset.id;
+      if (allSelected) {
+        state.tarefasSelecionadas.delete(id);
+        t.classList.remove('selected');
+      } else {
+        state.tarefasSelecionadas.add(id);
+        t.classList.add('selected');
+      }
+    });
+    updateCounter();
+  }
+
+  function toggleAllTasks(marcar) {
+    document.querySelectorAll('.task').forEach(t => {
+      const id = t.dataset.id;
+      if (marcar) {
+        state.tarefasSelecionadas.add(id);
+        t.classList.add('selected');
+      } else {
+        state.tarefasSelecionadas.delete(id);
+        t.classList.remove('selected');
+      }
+    });
+    updateCounter();
+  }
+
+  function updateCounter() {
+    document.getElementById('counter').textContent =
+      `${state.tarefasSelecionadas.size} tarefa(s) selecionada(s)`;
+  }
+
+  // ─────────────────────────────────────────────
+  // ENVIO
+  // ─────────────────────────────────────────────
+  function showStatus(type, msg) {
+    const el = document.getElementById('status');
+    el.className = 'status ' + type;
+    el.innerHTML = msg;
+    el.style.display = 'block';
+  }
+
+  async function enviarQuiz() {
+    if (state.tarefasSelecionadas.size === 0) {
+      showStatus('error', '⚠️ Selecione pelo menos uma tarefa.');
+      return;
+    }
+
+    // Monta payload no formato esperado pelo Make: { cliente, complexidade, departamentos: [{ nome, tarefas: [string] }] }
+    const grupos = {};
+    document.querySelectorAll('.task.selected').forEach(t => {
+      const grupo = t.dataset.grupo;
+      if (!grupos[grupo]) grupos[grupo] = [];
+      grupos[grupo].push(`${t.dataset.num} — ${t.dataset.texto}`);
+    });
+
+    const payload = {
+      cliente: state.cliente,
+      complexidade: state.complexidade,
+      departamentos: Object.entries(grupos).map(([nome, tarefas]) => ({ nome, tarefas }))
+    };
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Enviando para o ClickUp...';
+    showStatus('loading', '⏳ Criando estrutura no ClickUp. Aguarde alguns segundos...');
+
+    try {
+      const formBody = new URLSearchParams();
+      formBody.append('payload', JSON.stringify(payload));
+
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formBody.toString(),
+        mode: 'no-cors'
+      });
+
+      showStatus('success',
+        `✅ <strong>Quiz de "${state.cliente}" enviado!</strong><br>
+         As tarefas estão sendo criadas no ClickUp. Verifique em alguns instantes.`
+      );
+    } catch (err) {
+      showStatus('error', '❌ Falha ao conectar. Verifique sua internet e tente novamente.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Criar no ClickUp →';
+    }
+  }
+
+  // Inicialização
+  document.addEventListener('DOMContentLoaded', () => {
+    setProgress(33);
+  });
+</script>
+
+</body>
+</html>
